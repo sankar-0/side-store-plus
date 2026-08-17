@@ -9,7 +9,6 @@ on:
       - '**.md'
       - 'LICENSE'
       - '.editorconfig'
-      - '.gitignore'
 
 jobs:
   build-ipa:
@@ -23,7 +22,21 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Install Build Dependencies
+      - name: Ensure Submodules Cloned
+        run: |
+          git submodule update --init --recursive || true
+          if [ ! -f "Dependencies/AltSign/Package.swift" ]; then
+            echo "Cloning AltSign dependency..."
+            rm -rf Dependencies/AltSign
+            git clone --depth 1 -b master https://github.com/SideStore/AltSign Dependencies/AltSign
+          fi
+          if [ ! -f "Dependencies/minimuxer/Package.swift" ]; then
+            echo "Cloning minimuxer dependency..."
+            rm -rf Dependencies/minimuxer
+            git clone --depth 1 -b develop https://github.com/SideStore/minimuxer Dependencies/minimuxer
+          fi
+
+      - name: Install Build Tools
         run: |
           brew install ldid xcbeautify
 
@@ -32,20 +45,21 @@ jobs:
         with:
           xcode-version: "15.4"
 
-      - name: Build SideStore IPA
+      - name: Build SideStore
         run: |
           python3 scripts/ci/workflow.py build
 
-      - name: Upload SideStore IPA Artifact
+      - name: Upload SideStore IPA
         uses: actions/upload-artifact@v4
         with:
           name: SideStore-IPA
           path: SideStore.ipa
           retention-days: 30
 
-      - name: Upload dSYMs (Debug Symbols)
+      - name: Upload dSYMs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: SideStore-dSYMs
           path: SideStore.dSYMs.zip
-          retention-days: 30
+          retention-days: 14
