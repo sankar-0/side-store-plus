@@ -1,0 +1,51 @@
+name: Build SideStore IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+
+jobs:
+  build-ipa:
+    name: Build SideStore IPA
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install Build Dependencies
+        run: |
+          brew install ldid xcbeautify
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1.6.0
+        with:
+          xcode-version: "15.4"
+
+      - name: Build SideStore IPA
+        run: |
+          python3 scripts/ci/workflow.py build
+
+      - name: Upload SideStore IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SideStore-IPA
+          path: SideStore.ipa
+          retention-days: 30
+
+      - name: Upload dSYMs (Debug Symbols)
+        uses: actions/upload-artifact@v4
+        with:
+          name: SideStore-dSYMs
+          path: SideStore.dSYMs.zip
+          retention-days: 30
