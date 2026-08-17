@@ -1,0 +1,9 @@
+#include "../Build.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = $(MAIN_BUNDLE_IDENTIFIER).SideStoreTunnel
+PRODUCT_NAME = SideStoreTunnel
+
+CODE_SIGN_ENTITLEMENTS = ./SideStoreTunnel/SideStoreTunnel.entitlements
+ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO
+
+#include? "../local.xcconfig"
